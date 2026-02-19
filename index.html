@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Py Builder | Automated Python to EXE GUI</title>
+    <style>
+        :root {
+            --primary: #007acc;
+            --dark: #1e1e1e;
+            --darker: #121212;
+            --light: #d4d4d4;
+            --accent: #3e3e42;
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--darker);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: var(--dark);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .hero {
+            padding: 100px 0;
+            text-align: center;
+            background: linear-gradient(180deg, var(--dark) 0%, var(--darker) 100%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background-color: #005fa3;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            margin-left: 15px;
+        }
+
+        .features {
+            padding: 80px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background-color: var(--dark);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+        }
+
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .code-block {
+            background-color: #000;
+            padding: 25px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 40px 0;
+            border: 1px solid var(--accent);
+            text-align: left;
+        }
+
+        code {
+            font-family: 'Consolas', monospace;
+            color: #9cdcfe;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            background-color: var(--dark);
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid var(--accent);
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .github-link {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <a href="#" class="logo">PY BUILDER</a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#install">Install</a>
+                <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI" target="_blank">GitHub</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <h1>Turn Python into EXE with One Click</h1>
+        <p>A lightweight GUI for PyInstaller that handles dependencies, auto-cleans build files, and provides a seamless developer experience.</p>
+        <div class="actions">
+            <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI/archive/refs/heads/main.zip" class="btn">Download Now</a>
+            <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI" target="_blank" class="btn btn-outline">View on GitHub</a>
+        </div>
+    </div>
+</section>
+
+<section class="features" id="features">
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <h3>Auto-Dependency Check</h3>
+                <p>Scans your script's AST for imports and automatically installs missing pip packages before building.</p>
+            </div>
+            <div class="card">
+                <h3>Smart Console Detection</h3>
+                <p>Automatically detects if your script should be windowed or console-based based on file extension (.py vs .pyw).</p>
+            </div>
+            <div class="card">
+                <h3>Zero Junk Files</h3>
+                <p>Optional auto-clean feature removes 'build' folders and '.spec' files immediately after a successful export.</p>
+            </div>
+            <div class="card">
+                <h3>Real-time Watcher</h3>
+                <p>The UI monitors your folder in real-time. Simply drop a new script in and it appears in the list instantly.</p>
+            </div>
+            <div class="card">
+                <h3>Dark Mode Ready</h3>
+                <p>A native-feeling dark theme designed to match modern development environments.</p>
+            </div>
+            <div class="card">
+                <h3>Persistent Settings</h3>
+                <p>Your preferences for theme and cleaning are saved locally in a JSON config for the next time you launch.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container" id="install" style="padding-bottom: 80px;">
+    <h2 style="text-align: center; margin-bottom: 20px;">Simple Setup</h2>
+    <p style="text-align: center; color: var(--text-dim);">No installation required. Just place the script and run.</p>
+    <div class="code-block">
+        <code>
+            # 1. Clone the repository<br>
+            git clone https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI.git<br><br>
+            # 2. Enter directory<br>
+            cd Py-Builder-Automated-Python-to-EXE-GUI<br><br>
+            # 3. Run the builder<br>
+            python py_builder.pyw
+        </code>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <p>Released under the MIT License</p>
+        <p>Visit the official repository on <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI" class="github-link">GitHub</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
