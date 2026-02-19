@@ -1,48 +1,50 @@
 # Py Builder
 
-A Tkinter-based GUI utility designed to automate the conversion of Python scripts into standalone executables using PyInstaller.
-
----
+Py Builder is a lightweight, automated GUI tool designed to convert Python scripts (.py and .pyw) into standalone executable files (.exe). It simplifies the PyInstaller process by automatically detecting dependencies, managing build settings, and cleaning up temporary build artifacts.
 
 ## Features
 
-* **Automatic Script Detection**: Scans the directory in real-time for .py and .pyw files.
-* **Smart Dependency Management**: Uses Abstract Syntax Trees to find imports and attempts to install missing modules via pip.
-* **Adaptive Build Modes**: 
-    * **Console Mode**: Automatically applied to .py files.
-    * **Windowed Mode**: Automatically applied to .pyw files using the --noconsole flag.
-* **Theme Support**: Includes Dark and Light modes with settings that persist in a JSON file.
-* **Workspace Cleanup**: Optionally removes build, dist, and .spec files after the build process is complete.
-* **Real-Time Logging**: Displays the full PyInstaller output directly within the application scrolled text area.
+* **Automatic Dependency Management**: Scans your script for required libraries and installs them via pip if they are missing from the system.
+* **One-Click Builds**: Select a script from the auto-refreshing list and build it into a single-file executable.
+* **Console Detection**: Automatically configures the build for windowed mode (noconsole) if the source file is a .pyw file.
+* **Live Folder Watching**: The UI automatically updates when you add or remove Python files in the project directory.
+* **Built-in Clean Up**: Automatically removes 'build' folders and '.spec' files after a successful compilation to keep your directory clean.
+* **Interface Customization**: Supports both Dark and Light modes with persistent settings.
+* **Real-time Logging**: View the full PyInstaller output directly within the application window.
 
----
+## Installation
 
-## Requirements
+### Prerequisites
 
-* **Python 3.x**
-* **PyInstaller**: Must be installed and accessible via the python -m command.
-* **Tkinter**: Required for the graphical interface (usually included with Python).
+* Python 3.x installed on your system.
+* Windows (recommended for .exe generation).
 
----
+### Setup
 
-## How to Use
+1.  Download the `py_builder.pyw` file.
+2.  Place the file in the directory where your Python projects are located.
+3.  Double-click `py_builder.pyw` to run.
 
-1. **Placement**: Run py_builder.pyw from the same folder containing the Python scripts you wish to compile.
-2. **Selection**: Select the target script from the Detected Scripts listbox.
-3. **Configuration**: Use the checkboxes to toggle Auto-Clean or Dark Mode preferences.
-4. **Build**: Click the BUILD EXE button to start the process.
-    * The tool checks for and installs missing dependencies.
-    * It executes the PyInstaller command with the --onefile flag.
-5. **Output**: On success, the standalone executable is moved from the temporary dist folder to your main directory.
+Note: On the first run, the application will automatically install PyInstaller if it is not already present in your Python environment.
 
----
+## Usage
+
+1.  **Select a Script**: All .py and .pyw files in the current folder will appear in the "Detected Scripts" list.
+2.  **Configure Settings**: 
+    * Enable **Auto-Clean** to remove temporary files after the build.
+    * Toggle **Dark Mode** for your visual preference.
+3.  **Build**: Click the **BUILD EXE** button. 
+4.  **Result**: Once the process finishes, your executable will be located in the same folder as the original script.
 
 ## Technical Details
 
-* **Base Directory**: The tool detects its location whether running as a script or a frozen EXE.
-* **Threading**: Build tasks and folder watching run on separate threads to keep the UI responsive.
-* **Permissions**: Uses a helper function to modify file permissions to ensure successful directory cleanup.
+The application uses a bootstrap threading system to ensure that the GUI remains responsive while checking for system dependencies. It utilizes the following standard and third-party components:
 
----
+* **Tkinter**: For the graphical user interface.
+* **PyInstaller**: The backend engine for executable generation.
+* **AST (Abstract Syntax Trees)**: To intelligently parse scripts and identify required imports.
+* **Subprocess**: To manage pip installations and build commands in isolated threads.
 
-*Project generated for Py Builder*
+## License
+
+This project is open-source and available for modification and distribution.
