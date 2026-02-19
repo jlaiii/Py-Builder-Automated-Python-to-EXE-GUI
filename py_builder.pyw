@@ -7,13 +7,13 @@ import ast
 import stat
 import json
 import threading
+import importlib.util
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 
 # ===============================
 # CONFIG & SETTINGS
 # ===============================
-# Improved path detection for EXE environments
 if getattr(sys, 'frozen', False):
     BASE_DIR = os.path.dirname(sys.executable)
 else:
@@ -62,6 +62,7 @@ def clean_folders():
                 shutil.rmtree(target, onerror=remove_readonly)
             except Exception:
                 pass
+    
     for f in os.listdir(BASE_DIR):
         if f.endswith(".spec"):
             try:
@@ -100,7 +101,8 @@ class PyBuilderGUI:
                 "btn": "#007acc", "btn_fg": "white", "border": "#3e3e42", "log_bg": "#000000"
             },
             "light": {
-                "bg": "#f3f3f3", "panel": "#ffffff", "fg": "#333333", 
+                "bg": "#f3f3f3", "panel": "#ffffff", 
+                "fg": "#333333", 
                 "btn": "#007acc", "btn_fg": "white", "border": "#cccccc", "log_bg": "#ffffff"
             }
         }
@@ -111,8 +113,10 @@ class PyBuilderGUI:
         self.setup_ui()
         self.apply_theme()
         
-        # Start Watcher
+        # Start Watcher and Initial Dependency Check
         threading.Thread(target=self.folder_watcher, daemon=True).start()
+        # Silent check for PyInstaller
+        threading.Thread(target=self.bootstrap_dependencies, daemon=True).start()
 
     def setup_ui(self):
         self.header = tk.Frame(self.root, height=50, bd=0)
@@ -126,14 +130,12 @@ class PyBuilderGUI:
         top_frame = tk.Frame(self.container)
         top_frame.pack(fill="x", side="top")
 
-        # Listbox
         self.list_frame = tk.LabelFrame(top_frame, text="Detected Scripts (Auto-Refresh)", padx=5, pady=5, font=("Segoe UI", 9))
         self.list_frame.pack(side="left", fill="both", expand=True)
         
         self.file_listbox = tk.Listbox(self.list_frame, height=10, font=("Segoe UI", 10), borderwidth=0, highlightthickness=1)
         self.file_listbox.pack(fill="both", expand=True)
         
-        # Controls
         self.ctrl_frame = tk.LabelFrame(top_frame, text="Settings", padx=10, pady=5, font=("Segoe UI", 9))
         self.ctrl_frame.pack(side="right", fill="y", padx=(10, 0))
 
@@ -155,10 +157,24 @@ class PyBuilderGUI:
         self.log_area = scrolledtext.ScrolledText(self.container, height=20, font=("Consolas", 10), borderwidth=0, highlightthickness=1)
         self.log_area.pack(fill="both", expand=True)
 
+    def bootstrap_dependencies(self):
+        """Silently checks if PyInstaller is ready by trying to import it."""
+        try:
+            # Try to actually import it; this is more reliable than find_spec
+            import PyInstaller
+        except ImportError:
+            # Only if import fails do we log and install
+            self.log("[SYSTEM] PyInstaller not found. Auto-installing...")
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"], 
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self.log("[SYSTEM] PyInstaller installed successfully.")
+            except Exception:
+                self.log("[ERROR] Auto-install failed. Please run 'pip install pyinstaller' manually.")
+
     def folder_watcher(self):
         while True:
             try:
-                # Scans the folder where the EXE/Script is located
                 files = sorted([f for f in os.listdir(BASE_DIR) if f.endswith(".py") or f.endswith(".pyw")])
                 if files != self.last_file_state:
                     self.last_file_state = files
@@ -212,7 +228,7 @@ class PyBuilderGUI:
     def process_task(self, script_name):
         script_path = os.path.join(BASE_DIR, script_name)
         start_time = time.time()
-        
+   
         si = None
         if os.name == 'nt':
             si = subprocess.STARTUPINFO()
@@ -226,7 +242,7 @@ class PyBuilderGUI:
         for mod in imports:
             if mod in builtin: continue
             try:
-                __import__(mod)
+                importlib.import_module(mod)
             except ImportError:
                 self.log(f"Installing missing dependency: {mod}")
                 subprocess.run([sys.executable, "-m", "pip", "install", mod], 
@@ -235,12 +251,10 @@ class PyBuilderGUI:
         mode = "--noconsole" if script_name.endswith(".pyw") else "--console"
         command = [sys.executable, "-m", "PyInstaller", "--onefile", mode, script_name]
         
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, 
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                    text=True, cwd=BASE_DIR, startupinfo=si)
 
-        line_count = 0
         for line in process.stdout:
-            line_count += 1
             self.log(line.strip())
 
         process.wait()
@@ -261,14 +275,11 @@ class PyBuilderGUI:
             except Exception as e:
                 self.log(f"FILE ERROR: {str(e)}")
 
-        total_time = end_time - start_time
-        avg_time = total_time / line_count if line_count > 0 else 0
-        
         self.log("\n" + "="*50)
         self.log("FINAL BUILD SUMMARY")
         self.log("="*50)
         self.log(f"Result:        {'SUCCESS' if success else 'FAILED'}")
-        self.log(f"Build Time:    {total_time:.2f}s")
+        self.log(f"Build Time:    {end_time - start_time:.2f}s")
         if success: self.log(f"Output Path:   {destination_path}")
         self.log("="*50)
 
