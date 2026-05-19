@@ -3,264 +3,439 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Py Builder — Python to EXE GUI</title>
+  <title>Py Builder — Automated Python to EXE GUI</title>
   <meta name="description" content="A lightweight desktop GUI that builds Python scripts into standalone .exe files. One-click PyInstaller with auto-dependency management.">
-  <meta name="theme-color" content="#0f0f1a">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+  <meta name="theme-color" content="#0a0a14">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0f0f1a;
-      --card: #1a1a2e;
-      --accent: #007acc;
-      --accent2: #4daafc;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --success: #22c55e;
-      --border: #1e293b;
-      --gradient: linear-gradient(135deg, #007acc 0%, #7c3aed 50%, #c026d3 100%);
+      --bg: #0a0a14;
+      --surface: rgba(18, 18, 34, 0.85);
+      --surface-solid: #12122a;
+      --accent: #4f8fff;
+      --accent2: #7c5cff;
+      --text: #e8ecf1;
+      --muted: #8892a4;
+      --border: rgba(255, 255, 255, 0.06);
+      --glow: rgba(79, 143, 255, 0.15);
     }
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
       overflow-x: hidden;
     }
+
+    canvas#bgCanvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
     .hero {
-      position: relative;
+      position: relative; z-index: 1;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 2rem;
     }
-    .hero::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse 70% 70% at 50% -10%, rgba(0,122,204,0.12) 0%, transparent 60%),
-                  radial-gradient(ellipse 50% 50% at 20% 80%, rgba(124,58,237,0.08) 0%, transparent 60%);
+    .hero-content { max-width: 750px; }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(79, 143, 255, 0.12);
+      border: 1px solid rgba(79, 143, 255, 0.25);
+      border-radius: 100px; padding: 0.4rem 1.2rem;
+      font-size: 0.8rem; font-weight: 500;
+      color: var(--accent); margin-bottom: 1.5rem;
+      letter-spacing: 0.04em;
     }
-    .hero-content { position: relative; z-index: 1; max-width: 800px; }
-    .hero-icon { font-size: 5rem; margin-bottom: 1rem; filter: drop-shadow(0 8px 24px rgba(0,122,204,0.3)); }
+    .hero-badge .dot {
+      display: inline-block; width: 7px; height: 7px;
+      background: #4ade80; border-radius: 50%;
+      margin-right: 0.5rem; vertical-align: middle;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+    }
     .hero h1 {
-      font-size: clamp(2.5rem, 8vw, 5rem);
-      font-weight: 800;
-      background: var(--gradient);
+      font-size: clamp(3rem, 9vw, 5.5rem);
+      font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.05; margin-bottom: 1rem;
+      background: linear-gradient(135deg, #4f8fff 0%, #a78bfa 40%, #c084fc 100%);
       background-clip: text; -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.5rem;
     }
-    .hero .tagline {
-      font-size: 1.25rem;
-      color: var(--muted);
-      margin-bottom: 2rem;
-      max-width: 500px;
-      margin-inline: auto;
+    .hero h1 .highlight {
+      -webkit-text-fill-color: transparent;
+      background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+      background-clip: text; -webkit-background-clip: text;
     }
+    .hero p {
+      font-size: 1.2rem; color: var(--muted);
+      max-width: 520px; margin: 0 auto 2.5rem;
+    }
+    .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
     .btn {
       display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.875rem 2rem;
-      border-radius: 12px;
-      font-weight: 600; font-size: 1rem;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      cursor: pointer; border: none;
+      padding: 0.8rem 1.8rem; border-radius: 10px;
+      font-weight: 600; font-size: 0.95rem; text-decoration: none;
+      transition: all 0.25s ease; cursor: pointer; border: none;
     }
     .btn-primary {
-      background: var(--gradient);
+      background: linear-gradient(135deg, #4f8fff 0%, #7c5cff 100%);
       color: #fff;
-      box-shadow: 0 4px 24px rgba(0,122,204,0.3);
+      box-shadow: 0 4px 20px rgba(79, 143, 255, 0.3);
     }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,122,204,0.4); }
-    .btn-secondary {
-      background: var(--card); color: var(--text);
-      border: 1px solid var(--border);
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79, 143, 255, 0.45); }
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
     }
-    .btn-secondary:hover { background: #252540; border-color: var(--accent); }
-    .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-outline:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
 
-    section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+    section { position: relative; z-index: 1; padding: 5rem 2rem; max-width: 1150px; margin: 0 auto; }
+    .section-label {
+      display: inline-block; font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--accent); margin-bottom: 0.75rem;
+    }
     section h2 {
-      font-size: 2rem; font-weight: 700;
+      font-size: 2.2rem; font-weight: 700; letter-spacing: -0.02em;
       margin-bottom: 3rem; text-align: center;
     }
-    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-    .feature-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 2rem;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .feature-card:hover { border-color: var(--accent); transform: translateY(-4px); }
-    .feature-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
-    .feature-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
-    .feature-card p { color: var(--muted); font-size: 0.9rem; }
 
-    .install { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; }
-    .install code {
-      display: block; background: #0a0a14; border: 1px solid var(--border);
-      border-radius: 10px; padding: 1.25rem;
-      font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.9rem;
-      color: #a5b4fc;
-      margin-top: 1rem; overflow-x: auto;
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
     }
-    .install code .comment { color: var(--muted); }
-    .footer { text-align: center; padding: 3rem 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
-    .footer a { color: var(--accent2); text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
-    .status { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--success); margin-bottom: 1rem; }
-    .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; }
-    .workflow-step {
-      text-align: center; background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 1.5rem 1rem;
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2rem;
+      backdrop-filter: blur(16px);
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+      position: relative; overflow: hidden;
     }
-    .workflow-step .step-num {
-      font-size: 1.5rem; font-weight: 800;
-      background: var(--gradient); background-clip: text; -webkit-background-clip: text;
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      border-color: rgba(79, 143, 255, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(79, 143, 255, 0.08);
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card .card-icon {
+      font-size: 1.5rem; margin-bottom: 1rem;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(79, 143, 255, 0.1);
+      border-radius: 10px;
+    }
+    .feature-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .feature-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+
+    .steps {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem;
+    }
+    .step {
+      text-align: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.8rem 1rem;
+      backdrop-filter: blur(16px);
+    }
+    .step .num {
+      font-size: 2rem; font-weight: 800;
+      background: linear-gradient(135deg, #4f8fff, #a78bfa);
+      background-clip: text; -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
     }
-    .workflow-step p { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
-    .step-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.5rem; }
+    .step p { font-size: 0.85rem; color: var(--muted); }
+    .step p strong { color: var(--text); }
+
+    .code-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2rem;
+      backdrop-filter: blur(16px);
+      max-width: 650px; margin: 2rem auto 0;
+    }
+    .code-panel h3 { font-size: 1rem; font-weight: 600; color: var(--accent2); margin-bottom: 0.5rem; }
+    .code-panel .req { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .code-panel code {
+      display: block; background: #050510; border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px; padding: 1.25rem 1.5rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+      color: #a5b4fc; overflow-x: auto; line-height: 1.7;
+    }
+    .code-panel code .comment { color: #5a6988; }
+
+    footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 3rem 2rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 0.85rem;
+      backdrop-filter: blur(16px);
+      background: rgba(10, 10, 20, 0.6);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #1e1e3a; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2a2a4a; }
+
     @media (max-width: 768px) {
-      .workflow { grid-template-columns: 1fr; }
-      .step-arrow { display: none; }
-      section { padding: 4rem 1rem; }
-      .hero h1 { font-size: 2.25rem; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      section { padding: 3rem 1rem; }
+      .hero h1 { font-size: 2.5rem; }
+    }
+    @media (max-width: 480px) {
+      .steps { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <section class="hero">
-    <div class="hero-content">
-      <div class="hero-icon">🏗️</div>
-      <h1>Py Builder</h1>
-      <p class="tagline">Turn Python scripts into standalone EXE files with one click. No command-line knowledge required.</p>
-      <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:1.5rem;">
-        <span class="status-dot"></span> <span style="color:var(--muted);font-size:0.85rem;">v2.0 · Python 3.10+ · Windows</span>
-      </div>
-      <div class="btn-group">
-        <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI" class="btn btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12 24 5.37 18.63 0 12 0z"/></svg>
-          View on GitHub
-        </a>
-        <a href="#install" class="btn btn-secondary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Quick Start
-        </a>
-      </div>
-    </div>
-  </section>
+<canvas id="bgCanvas"></canvas>
 
-  <section id="workflow">
-    <h2>Four Steps to EXE</h2>
-    <div class="workflow">
-      <div class="workflow-step">
-        <span class="feature-icon">📁</span>
-        <h3>Place Script</h3>
-        <p>Drop <code>py_builder.pyw</code> into your project folder alongside your Python files</p>
-      </div>
-      <div class="workflow-step">
-        <span class="feature-icon">🔍</span>
-        <h3>Auto-Detect</h3>
-        <p>Scripts appear instantly in the list. The folder watcher refreshes in real time.</p>
-      </div>
-      <div class="workflow-step">
-        <span class="feature-icon">⚡</span>
-        <h3>One Click</h3>
-        <p>Select your script and press BUILD EXE. Dependencies auto-install if needed.</p>
-      </div>
-      <div class="workflow-step">
-        <span class="feature-icon">✅</span>
-        <h3>Done</h3>
-        <p>Your executable appears in the same folder. Temporary files auto-clean if enabled.</p>
-      </div>
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span>v2.0 — Available Now</div>
+    <h1>Python to EXE<span class="highlight">.</span><br>One Click<span class="highlight">.</span></h1>
+    <p>A lightweight GUI for PyInstaller that handles dependencies, auto-cleans build files, and delivers a seamless developer experience.</p>
+    <div class="btn-group">
+      <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        View on GitHub
+      </a>
+      <a href="#install" class="btn btn-outline">
+        Quick Start
+      </a>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="features">
-    <h2>Smart, Not Just Simple</h2>
-    <div class="features">
-      <div class="feature-card">
-        <span class="feature-icon">🧠</span>
-        <h3>AST Import Scanning</h3>
-        <p>Parses your script's source code to detect imports, then installs any missing pip packages before the build.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🪟</span>
-        <h3>Console Auto-Detection</h3>
-        <p><code>.pyw</code> files build with <code>--noconsole</code>. <code>.py</code> files keep the terminal. No manual config.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🗂️</span>
-        <h3>Dual Log Views</h3>
-        <p><strong>Build Log</strong> for clean PyInstaller output with a final summary. <strong>All Log</strong> for startup diagnostics, dependency checks, and errors.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🧹</span>
-        <h3>Auto-Clean</h3>
-        <p>Optionally removes <code>build/</code>, <code>dist/</code>, and <code>.spec</code> files after each successful build.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🚀</span>
-        <h3>Zero-Setup Launch</h3>
-        <p>Auto-installs PyInstaller on first run. No manual <code>pip install</code> needed. Just double-click.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🎨</span>
-        <h3>Dark & Light Themes</h3>
-        <p>Toggle between dark and light UI modes. Your preference persists between sessions.</p>
-      </div>
+<section id="workflow">
+  <div class="section-label">Workflow</div>
+  <h2>Four steps to your executable</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="num">01</div>
+      <p><strong>Place</strong> py_builder.pyw in your project folder alongside your scripts</p>
     </div>
-  </section>
-
-  <section id="install">
-    <h2>Get Started</h2>
-    <div class="install">
-      <h3 style="color:var(--accent2);margin-bottom:0.5rem;">Requirements</h3>
-      <p style="color:var(--muted);margin-bottom:1.5rem;">Windows 10/11 &middot; Python 3.10+</p>
-      <code>
-        <span class="comment"># 1. Clone the repo</span><br>
-        git clone https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI.git<br>
-        cd Py-Builder-Automated-Python-to-EXE-GUI<br><br>
-        <span class="comment"># 2. Run — PyInstaller auto-installs on first launch</span><br>
-        python py_builder.pyw
-      </code>
-      <p style="margin-top:1.25rem;color:var(--muted);font-size:0.85rem;">💡 <strong>Pro tip:</strong> Place <code>py_builder.pyw</code> in any project folder and double-click it. It auto-detects all scripts in that directory.</p>
+    <div class="step">
+      <div class="num">02</div>
+      <p><strong>Select</strong> any .py or .pyw file from the auto-detected list</p>
     </div>
-  </section>
-
-  <section id="tech">
-    <h2>Built With</h2>
-    <div class="features">
-      <div class="feature-card">
-        <span class="feature-icon">🖥️</span>
-        <h3>Tkinter</h3>
-        <p>Native Python GUI — zero extra dependencies for the interface layer.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">📦</span>
-        <h3>PyInstaller</h3>
-        <p>Industry-standard Python bundler that creates single-file executables.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🔬</span>
-        <h3>AST Parser</h3>
-        <p>Static analysis of Python source to intelligently detect required imports.</p>
-      </div>
+    <div class="step">
+      <div class="num">03</div>
+      <p><strong>Build</strong> with one click — dependencies auto-install if needed</p>
     </div>
-  </section>
+    <div class="step">
+      <div class="num">04</div>
+      <p><strong>Done.</strong> Your .exe appears in the same folder</p>
+    </div>
+  </div>
+</section>
 
-  <footer class="footer">
-    <p>Built with ♥ by <a href="https://github.com/jlaiii">jlaiii</a> · <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI">GitHub</a></p>
-    <p style="margin-top:0.5rem;">Powered by Tkinter · PyInstaller · Python AST · subprocess</p>
-  </footer>
+<section id="features">
+  <div class="section-label">Capabilities</div>
+  <h2>Built for developers who ship</h2>
+  <div class="features">
+    <div class="feature-card">
+      <div class="card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f8fff" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <h3>AST Import Scanning</h3>
+      <p>Parses your script at the syntax-tree level to detect every import and installs missing pip packages before the build begins.</p>
+    </div>
+    <div class="feature-card">
+      <div class="card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f8fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h3>Console Auto-Detection</h3>
+      <p>.pyw scripts build with --noconsole for silent GUIs. .py scripts keep the terminal window. No manual flags needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f8fff" stroke-width="2" stroke-linecap="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      </div>
+      <h3>Dual Log Views</h3>
+      <p>Build Log shows clean PyInstaller output with a summary. All Log captures startup diagnostics, dependency checks, and every warning.</p>
+    </div>
+    <div class="feature-card">
+      <div class="card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f8fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <h3>Auto-Clean</h3>
+      <p>Removes build/, dist/, and .spec files after each successful build. Optional toggle keeps things tidy.</p>
+    </div>
+    <div class="feature-card">
+      <div class="card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f8fff" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <h3>Live Folder Watcher</h3>
+      <p>Drop a new script into the folder and it instantly appears in the list. The watcher scans every second.</p>
+    </div>
+    <div class="feature-card">
+      <div class="card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f8fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <h3>Zero-Setup Launch</h3>
+      <p>Auto-installs PyInstaller on first run. Place the script in any project, double-click, and build. No pip install step.</p>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="section-label">Get Started</div>
+  <h2>Down and running in seconds</h2>
+  <div class="code-panel">
+    <h3>Requirements</h3>
+    <p class="req">Windows 10/11 &middot; Python 3.10+</p>
+    <code>
+      <span class="comment"># Clone and enter the directory</span><br>
+      git clone https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI.git<br>
+      cd Py-Builder-Automated-Python-to-EXE-GUI<br><br>
+      <span class="comment"># Run -- PyInstaller auto-installs on first launch</span><br>
+      python py_builder.pyw
+    </code>
+    <p style="margin-top:1.25rem;font-size:0.83rem;color:var(--muted);">Tip: Place py_builder.pyw in any project folder and double-click it. It auto-detects all scripts in that directory.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Built by <a href="https://github.com/jlaiii">jlaiii</a> &middot; <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI">GitHub</a></p>
+  <p style="margin-top:0.4rem;">PyInstaller &middot; Tkinter &middot; Python AST &middot; MIT License</p>
+</footer>
+
+<script>
+(function() {
+  var c = document.getElementById('bgCanvas');
+  var ctx = c.getContext('2d');
+  var w, h;
+  var particles = [];
+  var mouse = { x: null, y: null, r: 120 };
+  var PARTICLE_COUNT = 80;
+  var CONNECTION_DIST = 150;
+
+  function resize() {
+    w = c.width = window.innerWidth;
+    h = c.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  document.addEventListener('mousemove', function(e) {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  document.addEventListener('mouseleave', function() {
+    mouse.x = null;
+    mouse.y = null;
+  });
+
+  function Particle() {
+    this.x = Math.random() * w;
+    this.y = Math.random() * h;
+    this.vx = (Math.random() - 0.5) * 0.6;
+    this.vy = (Math.random() - 0.5) * 0.6;
+    this.r = Math.random() * 1.5 + 0.5;
+    this.opacity = Math.random() * 0.5 + 0.2;
+  }
+  Particle.prototype.update = function() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.x < 0 || this.x > w) this.vx *= -1;
+    if (this.y < 0 || this.y > h) this.vy *= -1;
+
+    if (mouse.x !== null) {
+      var dx = this.x - mouse.x;
+      var dy = this.y - mouse.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < mouse.r) {
+        var force = (mouse.r - dist) / mouse.r;
+        var angle = Math.atan2(dy, dx);
+        this.vx += Math.cos(angle) * force * 0.3;
+        this.vy += Math.sin(angle) * force * 0.3;
+      }
+    }
+    var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+    if (speed > 1.2) {
+      this.vx = (this.vx / speed) * 1.2;
+      this.vy = (this.vy / speed) * 1.2;
+    }
+  };
+
+  for (var i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push(new Particle());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(79, 143, 255, ' + p.opacity + ')';
+      ctx.fill();
+    }
+
+    for (var i = 0; i < particles.length; i++) {
+      for (var j = i + 1; j < particles.length; j++) {
+        var dx = particles[i].x - particles[j].x;
+        var dy = particles[i].y - particles[j].y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < CONNECTION_DIST) {
+          var alpha = (1 - dist / CONNECTION_DIST) * 0.12;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = 'rgba(79, 143, 255, ' + alpha + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function loop() {
+    for (var i = 0; i < particles.length; i++) {
+      particles[i].update();
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature-card, .step, .code-panel').forEach(function(el) {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+})();
+</script>
 
 </body>
 </html>
