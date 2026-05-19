@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Py Builder — Python to EXE GUI</title>
+  <meta name="description" content="A lightweight desktop GUI that builds Python scripts into standalone .exe files. One-click PyInstaller with auto-dependency management.">
+  <meta name="theme-color" content="#0f0f1a">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --accent: #007acc;
+      --accent2: #4daafc;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --success: #22c55e;
+      --border: #1e293b;
+      --gradient: linear-gradient(135deg, #007acc 0%, #7c3aed 50%, #c026d3 100%);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 70% at 50% -10%, rgba(0,122,204,0.12) 0%, transparent 60%),
+                  radial-gradient(ellipse 50% 50% at 20% 80%, rgba(124,58,237,0.08) 0%, transparent 60%);
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 800px; }
+    .hero-icon { font-size: 5rem; margin-bottom: 1rem; filter: drop-shadow(0 8px 24px rgba(0,122,204,0.3)); }
+    .hero h1 {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 800;
+      background: var(--gradient);
+      background-clip: text; -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+    .hero .tagline {
+      font-size: 1.25rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      max-width: 500px;
+      margin-inline: auto;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      border-radius: 12px;
+      font-weight: 600; font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer; border: none;
+    }
+    .btn-primary {
+      background: var(--gradient);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(0,122,204,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,122,204,0.4); }
+    .btn-secondary {
+      background: var(--card); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: #252540; border-color: var(--accent); }
+    .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+    section h2 {
+      font-size: 2rem; font-weight: 700;
+      margin-bottom: 3rem; text-align: center;
+    }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .feature-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+    .feature-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .feature-card p { color: var(--muted); font-size: 0.9rem; }
+
+    .install { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; }
+    .install code {
+      display: block; background: #0a0a14; border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.25rem;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.9rem;
+      color: #a5b4fc;
+      margin-top: 1rem; overflow-x: auto;
+    }
+    .install code .comment { color: var(--muted); }
+    .footer { text-align: center; padding: 3rem 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
+    .footer a { color: var(--accent2); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .status { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--success); margin-bottom: 1rem; }
+    .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; }
+    .workflow-step {
+      text-align: center; background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem 1rem;
+    }
+    .workflow-step .step-num {
+      font-size: 1.5rem; font-weight: 800;
+      background: var(--gradient); background-clip: text; -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .workflow-step p { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+    .step-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.5rem; }
+    @media (max-width: 768px) {
+      .workflow { grid-template-columns: 1fr; }
+      .step-arrow { display: none; }
+      section { padding: 4rem 1rem; }
+      .hero h1 { font-size: 2.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-icon">🏗️</div>
+      <h1>Py Builder</h1>
+      <p class="tagline">Turn Python scripts into standalone EXE files with one click. No command-line knowledge required.</p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:1.5rem;">
+        <span class="status-dot"></span> <span style="color:var(--muted);font-size:0.85rem;">v2.0 · Python 3.10+ · Windows</span>
+      </div>
+      <div class="btn-group">
+        <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12 24 5.37 18.63 0 12 0z"/></svg>
+          View on GitHub
+        </a>
+        <a href="#install" class="btn btn-secondary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Quick Start
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="workflow">
+    <h2>Four Steps to EXE</h2>
+    <div class="workflow">
+      <div class="workflow-step">
+        <span class="feature-icon">📁</span>
+        <h3>Place Script</h3>
+        <p>Drop <code>py_builder.pyw</code> into your project folder alongside your Python files</p>
+      </div>
+      <div class="workflow-step">
+        <span class="feature-icon">🔍</span>
+        <h3>Auto-Detect</h3>
+        <p>Scripts appear instantly in the list. The folder watcher refreshes in real time.</p>
+      </div>
+      <div class="workflow-step">
+        <span class="feature-icon">⚡</span>
+        <h3>One Click</h3>
+        <p>Select your script and press BUILD EXE. Dependencies auto-install if needed.</p>
+      </div>
+      <div class="workflow-step">
+        <span class="feature-icon">✅</span>
+        <h3>Done</h3>
+        <p>Your executable appears in the same folder. Temporary files auto-clean if enabled.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2>Smart, Not Just Simple</h2>
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">🧠</span>
+        <h3>AST Import Scanning</h3>
+        <p>Parses your script's source code to detect imports, then installs any missing pip packages before the build.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🪟</span>
+        <h3>Console Auto-Detection</h3>
+        <p><code>.pyw</code> files build with <code>--noconsole</code>. <code>.py</code> files keep the terminal. No manual config.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🗂️</span>
+        <h3>Dual Log Views</h3>
+        <p><strong>Build Log</strong> for clean PyInstaller output with a final summary. <strong>All Log</strong> for startup diagnostics, dependency checks, and errors.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🧹</span>
+        <h3>Auto-Clean</h3>
+        <p>Optionally removes <code>build/</code>, <code>dist/</code>, and <code>.spec</code> files after each successful build.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🚀</span>
+        <h3>Zero-Setup Launch</h3>
+        <p>Auto-installs PyInstaller on first run. No manual <code>pip install</code> needed. Just double-click.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎨</span>
+        <h3>Dark & Light Themes</h3>
+        <p>Toggle between dark and light UI modes. Your preference persists between sessions.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Get Started</h2>
+    <div class="install">
+      <h3 style="color:var(--accent2);margin-bottom:0.5rem;">Requirements</h3>
+      <p style="color:var(--muted);margin-bottom:1.5rem;">Windows 10/11 &middot; Python 3.10+</p>
+      <code>
+        <span class="comment"># 1. Clone the repo</span><br>
+        git clone https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI.git<br>
+        cd Py-Builder-Automated-Python-to-EXE-GUI<br><br>
+        <span class="comment"># 2. Run — PyInstaller auto-installs on first launch</span><br>
+        python py_builder.pyw
+      </code>
+      <p style="margin-top:1.25rem;color:var(--muted);font-size:0.85rem;">💡 <strong>Pro tip:</strong> Place <code>py_builder.pyw</code> in any project folder and double-click it. It auto-detects all scripts in that directory.</p>
+    </div>
+  </section>
+
+  <section id="tech">
+    <h2>Built With</h2>
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">🖥️</span>
+        <h3>Tkinter</h3>
+        <p>Native Python GUI — zero extra dependencies for the interface layer.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📦</span>
+        <h3>PyInstaller</h3>
+        <p>Industry-standard Python bundler that creates single-file executables.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔬</span>
+        <h3>AST Parser</h3>
+        <p>Static analysis of Python source to intelligently detect required imports.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Built with ♥ by <a href="https://github.com/jlaiii">jlaiii</a> · <a href="https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI">GitHub</a></p>
+    <p style="margin-top:0.5rem;">Powered by Tkinter · PyInstaller · Python AST · subprocess</p>
+  </footer>
+
+</body>
+</html>

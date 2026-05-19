@@ -1,50 +1,97 @@
-# Py Builder
+# 🏗️ Py Builder — Automated Python to EXE GUI
 
-Py Builder is a lightweight, automated GUI tool designed to convert Python scripts (.py and .pyw) into standalone executable files (.exe). It simplifies the PyInstaller process by automatically detecting dependencies, managing build settings, and cleaning up temporary build artifacts.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=flat&logo=python" alt="Python">
+  <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat&logo=windows" alt="Windows">
+  <img src="https://img.shields.io/badge/Engine-PyInstaller-orange?style=flat" alt="PyInstaller">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat" alt="MIT">
+</p>
 
-## Features
+**Py Builder** is a lightweight desktop GUI that turns your Python scripts into standalone `.exe` files with a single click. Built on top of PyInstaller, it handles everything — dependency scanning, auto-install, build configuration, and cleanup — so you don't have to touch the command line.
 
-* **Automatic Dependency Management**: Scans your script for required libraries and installs them via pip if they are missing from the system.
-* **One-Click Builds**: Select a script from the auto-refreshing list and build it into a single-file executable.
-* **Console Detection**: Automatically configures the build for windowed mode (noconsole) if the source file is a .pyw file.
-* **Live Folder Watching**: The UI automatically updates when you add or remove Python files in the project directory.
-* **Built-in Clean Up**: Automatically removes 'build' folders and '.spec' files after a successful compilation to keep your directory clean.
-* **Interface Customization**: Supports both Dark and Light modes with persistent settings.
-* **Real-time Logging**: View the full PyInstaller output directly within the application window.
+---
 
-## Installation
+## ✨ Features
 
-### Prerequisites
+- **One-Click EXE Builds** — select any `.py` or `.pyw` file and build it into a single-file executable
+- **Smart Dependency Check** — scans your script's AST for imports and auto-installs missing packages via pip
+- **Console Auto-Detection** — `.pyw` files get `--noconsole`, `.py` files get `--console` — handled automatically
+- **Dual Log Views** — **Build Log** shows clean PyInstaller output with a build summary (time, size, result); **All Log** captures everything: startup diagnostics, dependency checks, warnings, errors
+- **Auto-Clean** — optionally removes `build/`, `dist/`, and `.spec` files after each successful build
+- **Folder Watcher** — drop a new script into the folder and it instantly appears in the list
+- **Persistent Settings** — dark/light theme and auto-clean preferences saved between sessions
 
-* Python 3.x installed on your system.
-* Windows (recommended for .exe generation).
+---
 
-### Setup
+## 🚀 Quick Start
 
-1.  Download the `py_builder.pyw` file.
-2.  Place the file in the directory where your Python projects are located.
-3.  Double-click `py_builder.pyw` to run.
+### Requirements
 
-Note: On the first run, the application will automatically install PyInstaller if it is not already present in your Python environment.
+- **Windows 10/11**
+- **Python 3.10+** — [Download](https://python.org/downloads)
 
-## Usage
+### Install & Run
 
-1.  **Select a Script**: All .py and .pyw files in the current folder will appear in the "Detected Scripts" list.
-2.  **Configure Settings**: 
-    * Enable **Auto-Clean** to remove temporary files after the build.
-    * Toggle **Dark Mode** for your visual preference.
-3.  **Build**: Click the **BUILD EXE** button. 
-4.  **Result**: Once the process finishes, your executable will be located in the same folder as the original script.
+```bash
+git clone https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI.git
+cd Py-Builder-Automated-Python-to-EXE-GUI
+python py_builder.pyw
+```
 
-## Technical Details
+> **No setup needed.** Py Builder auto-installs PyInstaller on first launch. Place it in any project folder with your scripts and double-click.
 
-The application uses a bootstrap threading system to ensure that the GUI remains responsive while checking for system dependencies. It utilizes the following standard and third-party components:
+---
 
-* **Tkinter**: For the graphical user interface.
-* **PyInstaller**: The backend engine for executable generation.
-* **AST (Abstract Syntax Trees)**: To intelligently parse scripts and identify required imports.
-* **Subprocess**: To manage pip installations and build commands in isolated threads.
+## 📖 Usage
 
-## License
+1. **Place** `py_builder.pyw` in your project folder alongside your Python scripts
+2. **Launch** the app — it auto-detects all `.py` / `.pyw` files in the folder
+3. **Select** a script from the list
+4. **Click** `BUILD EXE` and watch the progress
+5. Your `.exe` appears in the same folder when done
 
-This project is open-source and available for modification and distribution.
+---
+
+## ⚙️ Settings
+
+| Setting           | Description |
+|-------------------|-------------|
+| **Auto-Clean**    | Removes `build/`, `dist/`, and `.spec` files after each build |
+| **Dark Mode**     | Toggle between dark and light UI themes |
+
+---
+
+## 🔧 Tech Stack
+
+```
+Tkinter        → Native GUI (no extra dependencies for the UI)
+PyInstaller    → Backend EXE compiler
+AST            → Static import detection from source code
+subprocess     → Isolated build commands with hidden console
+threading      → Responsive UI during builds and folder watching
+```
+
+---
+
+## 📁 Project Structure
+
+```
+├── py_builder.pyw           # Main application (double-click to run)
+├── requirements.txt         # Only PyInstaller (auto-installed)
+├── builder_settings.json    # Auto-generated user preferences
+├── docs/
+│   └── index.html           # GitHub Pages website
+└── README.md
+```
+
+---
+
+## 🤝 Contributing
+
+Found a bug or have a feature idea? Open an [issue](https://github.com/jlaiii/Py-Builder-Automated-Python-to-EXE-GUI/issues) or submit a pull request.
+
+---
+
+<div align="center">
+  <sub>Made with ❤️ by <a href="https://github.com/jlaiii">jlaiii</a></sub>
+</div>
